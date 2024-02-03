@@ -28,7 +28,7 @@ contract ERC20Token is Initializable, ERC20Upgradeable, OwnableUpgradeable, ERC2
         __ERC20Permit_init(name);
         __UUPSUpgradeable_init();
 
-        _mint(msg.sender, initialSupply * 10 ** decimals);
+        _mint(msg.sender, initialSupply * 10**decimals);
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
