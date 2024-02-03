@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { Test } from "forge-std/src/Test.sol";
 import { ERC20Factory, IERC20FactoryEvents } from "../src/ERC20Factory.sol";
 import { ERC20Token } from "../src/ERC20Token.sol";
