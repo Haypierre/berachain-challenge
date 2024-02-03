@@ -21,9 +21,8 @@ contract ERC20Factory is IERC20FactoryEvents {
         ERC20Token tokenContract = new ERC20Token();
         ERC1967Proxy proxy = new ERC1967Proxy(
             address(tokenContract),
-            abi.encodeCall(tokenContract.initialize,
-            (msg.sender, name, symbol, decimals, initialSupply)
-        ));
+            abi.encodeCall(tokenContract.initialize, (msg.sender, name, symbol, decimals, initialSupply))
+        );
         address proxyAddress = address(proxy);
         emit UpgradeableERC20TokenCreated(proxyAddress);
         return proxyAddress;
