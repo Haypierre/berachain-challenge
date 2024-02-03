@@ -24,7 +24,7 @@ contract ERC20FactoryTest is Test, IERC20FactoryEvents {
         assertEq(
             totalSupply,
             1e18,
-            "Call should have been delegated to the token implemtantaion contract and return correct total supply"
+            "Call should have been delegated to the token implemtantation contract and returns correct total supply"
         );
     }
 }
