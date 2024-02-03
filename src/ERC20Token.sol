@@ -7,8 +7,11 @@ import { ERC20PermitUpgradeable } from
     "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { ERC1967Utils } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
 contract ERC20Token is Initializable, ERC20Upgradeable, OwnableUpgradeable, ERC20PermitUpgradeable, UUPSUpgradeable {
+    address public factory;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -16,6 +19,7 @@ contract ERC20Token is Initializable, ERC20Upgradeable, OwnableUpgradeable, ERC2
 
     function initialize(
         address initialOwner,
+        address _factory,
         string calldata name,
         string calldata symbol,
         uint8 decimals,
@@ -28,13 +32,22 @@ contract ERC20Token is Initializable, ERC20Upgradeable, OwnableUpgradeable, ERC2
         __Ownable_init(initialOwner);
         __ERC20Permit_init(name);
         __UUPSUpgradeable_init();
-
-        _mint(msg.sender, initialSupply * 10 ** decimals);
+        factory = _factory;
+        _mint(initialOwner, initialSupply * 10 ** decimals);
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
+    function getAddress() public view returns (address implementation) {
+        return ERC1967Utils.getImplementation();
+    }
+
+    function _authorizeUpgrade(address /* newImplementation */ ) internal view override {
+        address sender = _msgSender();
+        if (sender != owner() && sender != factory) {
+            revert OwnableUnauthorizedAccount(sender);
+        }
+    }
 }
