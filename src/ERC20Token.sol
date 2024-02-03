@@ -33,6 +33,8 @@ contract ERC20Token is Initializable, ERC20Upgradeable, OwnableUpgradeable, ERC2
         __ERC20Permit_init(name);
         __UUPSUpgradeable_init();
         factory = _factory;
+
+        // TODO: test for under/overflow
         _mint(initialOwner, initialSupply * 10 ** decimals);
     }
 
