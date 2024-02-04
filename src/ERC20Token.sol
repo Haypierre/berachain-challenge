@@ -34,7 +34,7 @@ contract ERC20Token is Initializable, ERC20Upgradeable, OwnableUpgradeable, ERC2
         __UUPSUpgradeable_init();
         factory = _factory;
 
-        // TODO: test for under/overflow
+        // TODO: test for
         _mint(initialOwner, initialSupply * 10 ** decimals);
     }
 
@@ -48,6 +48,7 @@ contract ERC20Token is Initializable, ERC20Upgradeable, OwnableUpgradeable, ERC2
 
     function _authorizeUpgrade(address /* newImplementation */ ) internal view override {
         address sender = _msgSender();
+        // can't upgrade ERC20 from another factory than the one used for creation
         if (sender != owner() && sender != factory) {
             revert OwnableUnauthorizedAccount(sender);
         }

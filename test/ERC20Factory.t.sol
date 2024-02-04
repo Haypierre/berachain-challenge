@@ -2,27 +2,28 @@
 pragma solidity ^0.8.20;
 
 import { Test } from "forge-std/src/Test.sol";
-import { ERC20Factory, IERC20FactoryEvents } from "../src/ERC20Factory.sol";
-import { ERC20FactoryProxy } from "../src/ERC20FactoryProxy.sol";
+import { ERC20UpgradeableFactory, IERC20UpgradeableFactoryEvents } from "../src/ERC20UpgradeableFactory.sol";
+import { ERC20MetaFactory } from "../src/ERC20MetaFactory.sol";
 import { ERC20Token } from "../src/ERC20Token.sol";
 
-contract ERC20FactoryTest is Test, IERC20FactoryEvents {
-    ERC20FactoryProxy public factoryProxy;
-    ERC20Factory public factory;
+contract ERC20FactoryTest is Test, IERC20UpgradeableFactoryEvents {
+    ERC20MetaFactory public metaFactory;
+    ERC20UpgradeableFactory public factory;
     ERC20Token public myTokenV2;
 
     address public admin = address(42);
     address public firstOwner = address(1);
     address public secondOwner = address(2);
+    address public factoryProxyAddress;
 
     function setUp() public {
         vm.deal(address(this), 100 ether);
         vm.deal(admin, 100 ether);
         myTokenV2 = new ERC20Token();
-        factoryProxy = new ERC20FactoryProxy(admin);
+        metaFactory = new ERC20MetaFactory(admin);
         vm.startPrank(admin);
-        address factoryAddress = factoryProxy.deployNewUpgradeableFactory();
-        factory = ERC20Factory(factoryAddress);
+        factoryProxyAddress = metaFactory.deployNewUpgradeableFactory();
+        factory = ERC20UpgradeableFactory(factoryProxyAddress);
         vm.stopPrank();
     }
 
@@ -54,5 +55,31 @@ contract ERC20FactoryTest is Test, IERC20FactoryEvents {
             ERC20Token(proxy).getAddress(),
             "Implementation address should've been updated to myTokenV2 address"
         );
+    }
+
+    function testUpgradeFactory() public {
+        // not the factory owner
+        vm.startPrank(firstOwner);
+        // firstOwner isn't the current owner
+        // TODO: specify the error
+        // reason:  Reason: OwnableUnauthorizedAccount(0x0000000000000000000000000000000000000001)
+        vm.expectRevert();
+        factory.upgrade(factoryProxyAddress, address(100));
+
+        // Sadly this revert with a generic EvmError
+        // can't find the root cause yet .....
+
+        //         ├─ [10557] ERC1967Proxy::upgrade(ERC1967Proxy: [0x8d2C17FAd02B7bb64139109c6533b7C2b9CADb81],
+        // 0x0000000000000000000000000000000000000064)
+        // │   ├─ [5675] ERC20UpgradeableFactory::upgrade(ERC1967Proxy:
+        // [0x8d2C17FAd02B7bb64139109c6533b7C2b9CADb81], 0x0000000000000000000000000000000000000064) [delegatecall]
+        // │   │   ├─ [0] 0x0000000000000000000000000000000000000064::proxiableUUID() [staticcall]
+        // │   │   │   └─ ← ()
+        // │   │   └─ ← "EvmError: Revert"
+        // │   └─ ← "EvmError: Revert"
+        // └─ ← "EvmError: Revert"
+
+        vm.startPrank(admin);
+        factory.upgrade(factoryProxyAddress, address(100));
     }
 }

@@ -8,11 +8,16 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-interface IERC20FactoryEvents {
+interface IERC20UpgradeableFactoryEvents {
     event UpgradeableERC20TokenCreated(address proxy);
 }
 
-contract ERC20Factory is Initializable, OwnableUpgradeable, UUPSUpgradeable, IERC20FactoryEvents {
+contract ERC20UpgradeableFactory is
+    Initializable,
+    OwnableUpgradeable,
+    UUPSUpgradeable,
+    IERC20UpgradeableFactoryEvents
+{
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -22,7 +27,7 @@ contract ERC20Factory is Initializable, OwnableUpgradeable, UUPSUpgradeable, IER
         __Ownable_init(initialOwner);
     }
 
-    function _authorizeUpgrade(address /* newImplementation */ ) internal view override onlyOwner { }
+    function _authorizeUpgrade(address /* newImplementation */ ) internal view override { }
 
     function deployNewUpgradeableERC20Token(
         string calldata name,
@@ -43,10 +48,21 @@ contract ERC20Factory is Initializable, OwnableUpgradeable, UUPSUpgradeable, IER
         return proxyAddress;
     }
 
-    function upgradeERC20Token(address proxyAddress, address newImplemAddress) public returns (address) {
+    function upgradeERC20Token(address proxyAddress, address newTokenImplemAddress) public returns (address) {
         ERC20Token tokenContract = ERC20Token(proxyAddress);
         if (tokenContract.owner() != msg.sender) revert OwnableUpgradeable.OwnableUnauthorizedAccount(msg.sender);
-        ERC20Token(proxyAddress).upgradeToAndCall(newImplemAddress, "");
+        // since the msg.sender will be the factory address
+        // we need to check for the owner in the Factory
+        // and add factory as authorize address to perform ERC20Token upgrade
+        // (see _authorizeUpgrade in ERC20Token.sol)
+        ERC20Token(proxyAddress).upgradeToAndCall(newTokenImplemAddress, "");
+        return proxyAddress;
+    }
+
+    function upgrade(address proxyAddress, address newFactoryImplemAddress) public returns (address) {
+        //ERC20UpgradeableFactory factoryContract = ERC20UpgradeableFactory(proxyAddress);
+        if (owner() != msg.sender) revert OwnableUpgradeable.OwnableUnauthorizedAccount(msg.sender);
+        upgradeToAndCall(newFactoryImplemAddress, "");
         return proxyAddress;
     }
 }
