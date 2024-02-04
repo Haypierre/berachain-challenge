@@ -9,6 +9,7 @@ import { ERC20Token } from "../src/ERC20Token.sol";
 contract ERC20FactoryTest is Test, IERC20UpgradeableFactoryEvents {
     ERC20MetaFactory public metaFactory;
     ERC20UpgradeableFactory public factory;
+    ERC20UpgradeableFactory public factoryV2;
     ERC20Token public myTokenV2;
 
     address public admin = address(42);
@@ -20,6 +21,7 @@ contract ERC20FactoryTest is Test, IERC20UpgradeableFactoryEvents {
         vm.deal(address(this), 100 ether);
         vm.deal(admin, 100 ether);
         myTokenV2 = new ERC20Token();
+        factoryV2 = new ERC20UpgradeableFactory();
         metaFactory = new ERC20MetaFactory(admin);
         vm.startPrank(admin);
         factoryProxyAddress = metaFactory.deployNewUpgradeableFactory();
@@ -30,7 +32,7 @@ contract ERC20FactoryTest is Test, IERC20UpgradeableFactoryEvents {
     function testDeployNewUpgradeableERC20Token() public {
         vm.startPrank(firstOwner);
         vm.expectEmit();
-        emit UpgradeableERC20TokenCreated(address(0xF4AC4798c8af97F5905a52989Fac88a858493A34));
+        emit UpgradeableERC20TokenCreated(address(0x380912F2EaBC6148baaa7f333555bf552BADAcD1));
         address proxy = factory.deployNewUpgradeableERC20Token("Sauce", "SCE", 18, 1);
         uint256 totalSupply = ERC20Token(proxy).totalSupply();
         assertEq(
@@ -64,22 +66,8 @@ contract ERC20FactoryTest is Test, IERC20UpgradeableFactoryEvents {
         // TODO: specify the error
         // reason:  Reason: OwnableUnauthorizedAccount(0x0000000000000000000000000000000000000001)
         vm.expectRevert();
-        factory.upgrade(factoryProxyAddress, address(100));
-
-        // Sadly this revert with a generic EvmError
-        // can't find the root cause yet .....
-
-        //         ├─ [10557] ERC1967Proxy::upgrade(ERC1967Proxy: [0x8d2C17FAd02B7bb64139109c6533b7C2b9CADb81],
-        // 0x0000000000000000000000000000000000000064)
-        // │   ├─ [5675] ERC20UpgradeableFactory::upgrade(ERC1967Proxy:
-        // [0x8d2C17FAd02B7bb64139109c6533b7C2b9CADb81], 0x0000000000000000000000000000000000000064) [delegatecall]
-        // │   │   ├─ [0] 0x0000000000000000000000000000000000000064::proxiableUUID() [staticcall]
-        // │   │   │   └─ ← ()
-        // │   │   └─ ← "EvmError: Revert"
-        // │   └─ ← "EvmError: Revert"
-        // └─ ← "EvmError: Revert"
-
+        factory.upgrade(factoryProxyAddress, address(factoryV2));
         vm.startPrank(admin);
-        factory.upgrade(factoryProxyAddress, address(100));
+        factory.upgrade(factoryProxyAddress, address(factoryV2));
     }
 }
