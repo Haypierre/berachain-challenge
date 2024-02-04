@@ -60,7 +60,6 @@ contract ERC20UpgradeableFactory is
     }
 
     function upgrade(address proxyAddress, address newFactoryImplemAddress) public returns (address) {
-        //ERC20UpgradeableFactory factoryContract = ERC20UpgradeableFactory(proxyAddress);
         if (owner() != msg.sender) revert OwnableUpgradeable.OwnableUnauthorizedAccount(msg.sender);
         upgradeToAndCall(newFactoryImplemAddress, "");
         return proxyAddress;

@@ -19,10 +19,4 @@ contract ERC20MetaFactory is Ownable, IERC20FactoryProxyEvents {
         emit UpgradeableERC20FactoryCreated(address(proxy));
         return address(proxy);
     }
-
-    // function upgradeFactory(address proxyAddress, address newFactoryImplemAddress) public returns (address) {
-    //     if (owner() != msg.sender) revert Ownable.OwnableUnauthorizedAccount(msg.sender);
-    //     ERC20UpgradeableFactory(proxyAddress).upgradeToAndCall(newFactoryImplemAddress, "");
-    //     return proxyAddress;
-    // }
 }
